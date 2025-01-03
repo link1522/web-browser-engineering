@@ -4,33 +4,41 @@ import ssl
 
 class URL:
     def __init__(self, url: str):
+        if url.startswith("data:"):
+            self.scheme, self.path = url.split(":", 1)
+            return
+
         self.scheme, url = url.split("://", 1)
         assert self.scheme in ["http", "https", "file"]
 
         if self.scheme in ["http", "https"]:
-            if self.scheme == "http":
-                self.port = 80
-            elif self.scheme == "https":
-                self.port = 443
-
-            if "/" not in url:
-                url += "/"
-            self.host, url = url.split("/", 1)
-            self.path = "/" + url
-
-            if ":" in self.host:
-                self.host, self.port = self.host.split(":", 1)
-                self.port = int(self.port)
+            self.host, self.path, self.port = self._parse_host_path_port(url)
         elif self.scheme == "file":
             self.path = url
 
+    def _parse_host_path_port(self, url: str) -> tuple[str, str]:
+        if not url.endswith("/"):
+            url += "/"
+        host, path = url.split("/", 1)
+        path = "/" + path
+
+        port = 80 if self.scheme == "http" else 443
+        if ":" in host:
+            host, port = host.split(":", 1)
+            port = int(port)
+
+        return host, path, port
+
     def request(self) -> str:
-        if self.scheme in ["http", "https"]:
-            return self.fetchDataFromHttp()
+        if self.scheme == "data":
+            content = self.path.split(",", 1)[1]
+            return content
+        elif self.scheme in ["http", "https"]:
+            return self._fetchDataFromHttp()
         elif self.scheme == "file":
-            return self.fetchDataFromLocal()
-    
-    def fetchDataFromHttp(self) -> str:
+            return self._fetchDataFromLocal()
+
+    def _fetchDataFromHttp(self) -> str:
         s = socket.socket(
             family=socket.AF_INET,
             type=socket.SOCK_STREAM,
@@ -60,10 +68,11 @@ class URL:
         response_headers = {}
         while True:
             line = response.readline()
-            if line == "\r\n": break
+            if line == "\r\n":
+                break
             header, value = line.split(":", 1)
             response_headers[header.casefold()] = value.strip()
-        
+
         assert "transfer-encoding" not in response_headers
         assert "content-encoding" not in response_headers
 
@@ -72,10 +81,11 @@ class URL:
 
         return content
 
-    def fetchDataFromLocal(self) -> str:
+    def _fetchDataFromLocal(self) -> str:
         with open(self.path, "r", encoding="utf8") as file:
             content = file.read()
             return content
+
 
 def show(body):
     in_tag = False
@@ -87,10 +97,13 @@ def show(body):
         elif not in_tag:
             print(c, end="")
 
+
 def load(url: URL):
     body = url.request()
     show(body)
 
+
 if __name__ == "__main__":
     import sys
+
     load(URL(sys.argv[1]))
