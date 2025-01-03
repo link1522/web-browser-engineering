@@ -5,23 +5,32 @@ import ssl
 class URL:
     def __init__(self, url: str):
         self.scheme, url = url.split("://", 1)
-        assert self.scheme in ["http", "https"]
+        assert self.scheme in ["http", "https", "file"]
 
-        if self.scheme == "http":
-            self.port = 80
-        elif self.scheme == "https":
-            self.port = 443
+        if self.scheme in ["http", "https"]:
+            if self.scheme == "http":
+                self.port = 80
+            elif self.scheme == "https":
+                self.port = 443
 
-        if "/" not in url:
-            url += "/"
-        self.host, url = url.split("/", 1)
-        self.path = "/" + url
+            if "/" not in url:
+                url += "/"
+            self.host, url = url.split("/", 1)
+            self.path = "/" + url
 
-        if ":" in self.host:
-            self.host, self.port = self.host.split(":", 1)
-            self.port = int(self.port)
+            if ":" in self.host:
+                self.host, self.port = self.host.split(":", 1)
+                self.port = int(self.port)
+        elif self.scheme == "file":
+            self.path = url
 
-    def request(self):
+    def request(self) -> str:
+        if self.scheme in ["http", "https"]:
+            return self.fetchDataFromHttp()
+        elif self.scheme == "file":
+            return self.fetchDataFromLocal()
+    
+    def fetchDataFromHttp(self) -> str:
         s = socket.socket(
             family=socket.AF_INET,
             type=socket.SOCK_STREAM,
@@ -62,6 +71,11 @@ class URL:
         s.close()
 
         return content
+
+    def fetchDataFromLocal(self) -> str:
+        with open(self.path, "r", encoding="utf8") as file:
+            content = file.read()
+            return content
 
 def show(body):
     in_tag = False
