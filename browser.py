@@ -61,7 +61,7 @@ def layout(text):
     for c in text:
         display_list.append((cursor_x, cursor_y, c))
         cursor_x += HSTEP
-        if cursor_x >= WIDTH - HSTEP:
+        if cursor_x >= WIDTH - HSTEP or c == "\n":
             cursor_y += VSTEP
             cursor_x = HSTEP
 
