@@ -1,93 +1,42 @@
-import socket
-import ssl
+import tkinter
+import sys
+from URL import URL
+
+WIDTH, HEIGHT = 800, 600
+HSTEP, VSTEP = 13, 18
+SCROLL_STEP = 100
 
 
-class URL:
-    def __init__(self, url: str):
-        if url.startswith("data:"):
-            self.scheme, self.path = url.split(":", 1)
-            return
+class Browser:
+    def __init__(self):
+        self.window = tkinter.Tk()
+        self.window.bind("<Down>", self.scrolldown)
+        self.window.bind("<Up>", self.scrollup)
+        self.canvas = tkinter.Canvas(self.window, width=WIDTH, height=HEIGHT)
+        self.canvas.pack()
+        self.scroll = 0
 
-        self.scheme, url = url.split("://", 1)
-        assert self.scheme in ["http", "https", "file"]
+    def scrolldown(self, event):
+        self.scroll += SCROLL_STEP
+        self.draw()
 
-        if self.scheme in ["http", "https"]:
-            self.host, self.path, self.port = self._parse_host_path_port(url)
-        elif self.scheme == "file":
-            self.path = url
+    def scrollup(self, event):
+        self.scroll -= SCROLL_STEP
+        self.draw()
 
-    def _parse_host_path_port(self, url: str) -> tuple[str, str]:
-        if not url.endswith("/"):
-            url += "/"
-        host, path = url.split("/", 1)
-        path = "/" + path
+    def load(self, url: URL):
+        body = url.request()
+        text = lex(body)
+        self.display_list = layout(text)
+        self.draw()
 
-        port = 80 if self.scheme == "http" else 443
-        if ":" in host:
-            host, port = host.split(":", 1)
-            port = int(port)
-
-        return host, path, port
-
-    def request(self) -> str:
-        if self.scheme == "data":
-            content = self.path.split(",", 1)[1]
-            return content
-        elif self.scheme in ["http", "https"]:
-            return self._fetchDataFromHttp()
-        elif self.scheme == "file":
-            return self._fetchDataFromLocal()
-
-    def _fetchDataFromHttp(self) -> str:
-        s = socket.socket(
-            family=socket.AF_INET,
-            type=socket.SOCK_STREAM,
-            proto=socket.IPPROTO_TCP,
-        )
-
-        s.connect((self.host, self.port))
-        if self.scheme == "https":
-            ctx = ssl.create_default_context()
-            s = ctx.wrap_socket(s, server_hostname=self.host)
-
-        headers = {
-            "Host": self.host,
-            "Connection": "close",
-            "User-Agent": "MyBrowser/1.0",
-        }
-        request = "GET {} HTTP/1.0\r\n".format(self.path)
-        for header, value in headers.items():
-            request += "{}: {}\r\n".format(header, value)
-        request += "\r\n"
-        s.send(request.encode("utf8"))
-
-        response = s.makefile("r", encoding="utf8", newline="\r\n")
-        statusline = response.readline()
-        version, status, explanation = statusline.split(" ", 2)
-
-        response_headers = {}
-        while True:
-            line = response.readline()
-            if line == "\r\n":
-                break
-            header, value = line.split(":", 1)
-            response_headers[header.casefold()] = value.strip()
-
-        assert "transfer-encoding" not in response_headers
-        assert "content-encoding" not in response_headers
-
-        content = response.read()
-        s.close()
-
-        return content
-
-    def _fetchDataFromLocal(self) -> str:
-        with open(self.path, "r", encoding="utf8") as file:
-            content = file.read()
-            return content
+    def draw(self):
+        self.canvas.delete("all")
+        for x, y, c in self.display_list:
+            self.canvas.create_text(x, y - self.scroll, text=c)
 
 
-def show(body):
+def lex(body):
     in_tag = False
     content = ""
 
@@ -100,15 +49,23 @@ def show(body):
             content += c
 
     content = content.replace("&lt;", "<").replace("&gt;", ">")
-    print(content)
+    return content
 
 
-def load(url: URL):
-    body = url.request()
-    show(body)
+def layout(text):
+    display_list = []
+    cursor_x, cursor_y = HSTEP, VSTEP
+
+    for c in text:
+        display_list.append((cursor_x, cursor_y, c))
+        cursor_x += HSTEP
+        if cursor_x >= WIDTH - HSTEP:
+            cursor_y += VSTEP
+            cursor_x = HSTEP
+
+    return display_list
 
 
 if __name__ == "__main__":
-    import sys
-
-    load(URL(sys.argv[1]))
+    Browser().load(URL(sys.argv[1]))
+    tkinter.mainloop()
