@@ -33,6 +33,8 @@ class Browser:
     def draw(self):
         self.canvas.delete("all")
         for x, y, c in self.display_list:
+            if y > HEIGHT + self.scroll or y + VSTEP < self.scroll:
+                continue
             self.canvas.create_text(x, y - self.scroll, text=c)
 
 
