@@ -1,5 +1,4 @@
 import tkinter
-import tkinter.font
 import sys
 from URL import URL
 from Layout import Layout
