@@ -12,6 +12,7 @@ class Browser:
         self.window = tkinter.Tk()
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Up>", self.scrollup)
+        self.window.bind("<MouseWheel>", self.mouseScroll)
         self.canvas = tkinter.Canvas(self.window, width=WIDTH, height=HEIGHT)
         self.canvas.pack()
         self.scroll = 0
@@ -22,6 +23,12 @@ class Browser:
 
     def scrollup(self, event):
         self.scroll -= SCROLL_STEP
+        self.draw()
+
+    def mouseScroll(self, event):
+        self.scroll -= event.delta
+        if self.scroll < 0:
+            self.scroll = 0
         self.draw()
 
     def load(self, url: URL):
