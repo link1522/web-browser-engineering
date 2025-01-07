@@ -9,12 +9,15 @@ SCROLL_STEP = 100
 
 class Browser:
     def __init__(self):
+        self.height = HEIGHT
+        self.width = WIDTH
         self.window = tkinter.Tk()
         self.window.bind("<Down>", self.scrolldown)
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<MouseWheel>", self.mouseScroll)
-        self.canvas = tkinter.Canvas(self.window, width=WIDTH, height=HEIGHT)
-        self.canvas.pack()
+        self.window.bind("<Configure>", self.resize)
+        self.canvas = tkinter.Canvas(self.window, width=self.width, height=self.height)
+        self.canvas.pack(fill="both", expand=True)
         self.scroll = 0
 
     def scrolldown(self, event):
@@ -31,16 +34,22 @@ class Browser:
             self.scroll = 0
         self.draw()
 
+    def resize(self, event):
+        self.width = event.width
+        self.height = event.height
+        self.display_list = layout(self.text, self.width)
+        self.draw()
+
     def load(self, url: URL):
         body = url.request()
-        text = lex(body)
-        self.display_list = layout(text)
+        self.text = lex(body)
+        self.display_list = layout(self.text, self.width)
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
         for x, y, c in self.display_list:
-            if y > HEIGHT + self.scroll or y + VSTEP < self.scroll:
+            if y > self.height + self.scroll or y + VSTEP < self.scroll:
                 continue
             self.canvas.create_text(x, y - self.scroll, text=c)
 
@@ -61,14 +70,14 @@ def lex(body):
     return content
 
 
-def layout(text):
+def layout(text, width=WIDTH):
     display_list = []
     cursor_x, cursor_y = HSTEP, VSTEP
 
     for c in text:
         display_list.append((cursor_x, cursor_y, c))
         cursor_x += HSTEP
-        if cursor_x >= WIDTH - HSTEP or c == "\n":
+        if cursor_x >= width - HSTEP or c == "\n":
             cursor_y += VSTEP
             cursor_x = HSTEP
 
