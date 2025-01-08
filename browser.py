@@ -2,8 +2,7 @@ import tkinter
 import sys
 from URL import URL
 from Layout import Layout
-from Text import Text
-from Tag import Tag
+from HTMLParser import HTMLParser
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
@@ -39,13 +38,13 @@ class Browser:
     def resize(self, event):
         self.width = event.width
         self.height = event.height
-        self.display_list = Layout(self.tokens).display_list
+        self.display_list = Layout(self.nodes).display_list
         self.draw()
 
     def load(self, url: URL):
         body = url.request()
-        self.tokens = lex(body)
-        self.display_list = Layout(self.tokens).display_list
+        self.nodes = HTMLParser(body).parse()
+        self.display_list = Layout(self.nodes).display_list
         self.draw()
 
     def draw(self):
@@ -54,29 +53,6 @@ class Browser:
             if y > self.height + self.scroll or y + Layout.VSTEP < self.scroll:
                 continue
             self.canvas.create_text(x, y - self.scroll, text=c, anchor="nw", font=font)
-
-
-def lex(body):
-    out = []
-    buffer = ""
-    in_tag = False
-
-    for c in body:
-        if c == "<":
-            in_tag = True
-            if buffer:
-                out.append(Text(buffer))
-                buffer = ""
-        elif c == ">":
-            in_tag = False
-            out.append(Tag(buffer))
-            buffer = ""
-        else:
-            buffer += c
-    if not in_tag and buffer:
-        out.append(Text(buffer))
-
-    return out
 
 
 if __name__ == "__main__":
