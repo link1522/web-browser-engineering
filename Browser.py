@@ -20,7 +20,8 @@ class Browser:
         self.scroll = 0
 
     def scrolldown(self, event):
-        self.scroll += SCROLL_STEP
+        max_y = max(self.document.height + 2 * DocumentLayout.VSTEP - HEIGHT, 0)
+        self.scroll = min(self.scroll + SCROLL_STEP, max_y)
         self.draw()
 
     def scrollup(self, event):
@@ -28,9 +29,13 @@ class Browser:
         self.draw()
 
     def mouseScroll(self, event):
+        max_y = max(self.document.height + 2 * DocumentLayout.VSTEP - HEIGHT, 0)
+
         self.scroll -= event.delta
         if self.scroll < 0:
             self.scroll = 0
+        if self.scroll > max_y:
+            self.scroll = max_y
         self.draw()
 
     def resize(self, event):

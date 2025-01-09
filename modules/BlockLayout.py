@@ -110,13 +110,6 @@ class BlockLayout:
         else:
             return "block"
 
-    def layout_intermediate(self):
-        previous = None
-        for child in self.node.children:
-            next = BlockLayout(child, self, previous)
-            self.children.append(next)
-            previous = next
-
     def recurse(self, tree):
         if isinstance(tree, Text):
             for word in tree.text.split():
