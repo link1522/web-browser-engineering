@@ -1,6 +1,6 @@
 from typing import List, Union
-from Text import Text
-from Element import Element
+from modules.Text import Text
+from modules.Element import Element
 
 
 class HTMLParser:

@@ -1,4 +1,4 @@
-from BlockLayout import BlockLayout
+from modules.BlockLayout import BlockLayout
 
 
 WIDTH, HEIGHT = 800, 600

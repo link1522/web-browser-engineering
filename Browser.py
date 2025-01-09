@@ -1,9 +1,9 @@
 import tkinter
 import sys
-from URL import URL
-from BlockLayout import BlockLayout
-from DocumentLayout import DocumentLayout
-from HTMLParser import HTMLParser
+from modules.URL import URL
+from modules.BlockLayout import BlockLayout
+from modules.DocumentLayout import DocumentLayout
+from modules.HTMLParser import HTMLParser
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
