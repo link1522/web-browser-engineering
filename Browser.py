@@ -1,7 +1,8 @@
 import tkinter
 import sys
 from URL import URL
-from Layout import Layout
+from BlockLayout import BlockLayout
+from DocumentLayout import DocumentLayout
 from HTMLParser import HTMLParser
 
 WIDTH, HEIGHT = 800, 600
@@ -38,21 +39,33 @@ class Browser:
     def resize(self, event):
         self.width = event.width
         self.height = event.height
-        self.display_list = Layout(self.nodes).display_list
+        self.document = DocumentLayout(self.nodes)
+        self.document.layout()
+        paint_tree(self.document, self.display_list)
         self.draw()
 
     def load(self, url: URL):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
-        self.display_list = Layout(self.nodes).display_list
+        self.document = DocumentLayout(self.nodes)
+        self.document.layout()
+        self.display_list = []
+        paint_tree(self.document, self.display_list)
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
         for x, y, c, font in self.display_list:
-            if y > self.height + self.scroll or y + Layout.VSTEP < self.scroll:
+            if y > self.height + self.scroll or y + BlockLayout.VSTEP < self.scroll:
                 continue
             self.canvas.create_text(x, y - self.scroll, text=c, anchor="nw", font=font)
+
+
+def paint_tree(layout_object, display_list):
+    display_list.extend(layout_object.paint())
+
+    for child in layout_object.children:
+        paint_tree(child, display_list)
 
 
 if __name__ == "__main__":
