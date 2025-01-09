@@ -1,6 +1,6 @@
 import tkinter
 import sys
-from modules import URL, DocumentLayout, HTMLParser
+from modules import URL, DocumentLayout, HTMLParser, Element
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
@@ -67,6 +67,8 @@ def paint_tree(layout_object, display_list):
     display_list.extend(layout_object.paint())
 
     for child in layout_object.children:
+        if isinstance(child.node, Element) and child.node.tag == "head":
+            continue
         paint_tree(child, display_list)
 
 
