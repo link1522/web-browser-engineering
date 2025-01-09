@@ -1,6 +1,8 @@
+import tkinter.font
 from .Text import Text
 from .Element import Element
-import tkinter.font
+from .DrawText import DrawText
+from .DrawRect import DrawRect
 
 FONTS = {}
 
@@ -180,7 +182,18 @@ class BlockLayout:
         self.line = []
 
     def paint(self):
-        return self.display_list
+        cmds = []
+
+        if isinstance(self.node, Element) and self.node.tag == "pre":
+            x2, y2 = self.x + self.width, self.y + self.height
+            rect = DrawRect(self.x, self.y, x2, y2, "gray")
+            cmds.append(rect)
+
+        if self.layout_mode() == "inline":
+            for x, y, word, font in self.display_list:
+                cmds.append(DrawText(x, y, word, font))
+
+        return cmds
 
 
 def get_font(size, weight, style):

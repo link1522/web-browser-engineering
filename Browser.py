@@ -1,6 +1,6 @@
 import tkinter
 import sys
-from modules import URL, BlockLayout, DocumentLayout, HTMLParser
+from modules import URL, DocumentLayout, HTMLParser
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
@@ -52,10 +52,10 @@ class Browser:
 
     def draw(self):
         self.canvas.delete("all")
-        for x, y, c, font in self.display_list:
-            if y > self.height + self.scroll or y + BlockLayout.VSTEP < self.scroll:
+        for cmd in self.display_list:
+            if cmd.top > self.scroll + HEIGHT or cmd.bottom < self.scroll:
                 continue
-            self.canvas.create_text(x, y - self.scroll, text=c, anchor="nw", font=font)
+            cmd.execute(self.scroll, self.canvas)
 
 
 def paint_tree(layout_object, display_list):
