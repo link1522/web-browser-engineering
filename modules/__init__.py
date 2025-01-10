@@ -6,3 +6,4 @@ from .Text import Text
 from .Element import Element
 from .DrawText import DrawText
 from .DrawRect import DrawRect
+from .CSSParser import CSSParser

@@ -1,6 +1,6 @@
 import tkinter
 import sys
-from modules import URL, DocumentLayout, HTMLParser, Element
+from modules import URL, DocumentLayout, HTMLParser, Element, CSSParser
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
@@ -49,6 +49,7 @@ class Browser:
     def load(self, url: URL):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
+        style(self.nodes)
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
         self.display_list = []
@@ -71,6 +72,15 @@ def paint_tree(layout_object, display_list):
             continue
         paint_tree(child, display_list)
 
+def style(node):
+    node.style = {}
+    if isinstance(node, Element) and 'style' in node.attributes:
+        pairs = CSSParser(node.attributes['style']).body()
+        for property, value in pairs.items():
+            node.style[property] = value
+
+    for child in node.children:
+        style(child)
 
 if __name__ == "__main__":
     Browser().load(URL(sys.argv[1]))
