@@ -4,6 +4,13 @@ from modules import URL, DocumentLayout, HTMLParser, Element, CSSParser
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
+DEFAULT_STYLE_SHEET = CSSParser(open("Browser.css").read()).parse()
+INHERITED_PROPERTIES = {
+    "font-size": "16px",
+    "font-style": "normal",
+    "font-weight": "normal",
+    "color": "black",
+}
 
 
 class Browser:
@@ -49,7 +56,23 @@ class Browser:
     def load(self, url: URL):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
-        style(self.nodes)
+        links = [
+            node.attributes["href"]
+            for node in tree_to_list(self.nodes, [])
+            if isinstance(node, Element)
+            and node.tag == "link"
+            and node.attributes.get("rel") == "stylesheet"
+            and "href" in node.attributes
+        ]
+        rules = DEFAULT_STYLE_SHEET.copy()
+        for link in links:
+            style_url = url.resolve(link)
+            try:
+                body = style_url.request()
+            except:
+                continue
+            rules.extend(CSSParser(body).parse())
+        style(self.nodes, sorted(rules, key = cascade_priority))
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
         self.display_list = []
@@ -72,15 +95,51 @@ def paint_tree(layout_object, display_list):
             continue
         paint_tree(child, display_list)
 
-def style(node):
+
+def style(node, rules):
     node.style = {}
-    if isinstance(node, Element) and 'style' in node.attributes:
-        pairs = CSSParser(node.attributes['style']).body()
-        for property, value in pairs.items():
+
+    for property, default_value in INHERITED_PROPERTIES.items():
+        if node.parent:
+            node.style[property] = node.parent.style[property]
+        else:
+            node.style[property] = default_value
+
+    for selector, body in rules:
+        if not selector.matches(node):
+            continue
+        for property, value in body.items():
             node.style[property] = value
 
+    if isinstance(node, Element) and "style" in node.attributes:
+        pairs = CSSParser(node.attributes["style"]).body()
+        for property, value in pairs.items():
+            node.style[property] = value
+    
+    if node.style["font-size"].endswith("%"):
+        if node.parent:
+            parent_font_size = node.parent.style["font-size"]
+        else:
+            parent_font_size = INHERITED_PROPERTIES["font-size"]
+        node_pct = float(node.style["font-size"][:-1]) / 100
+        parent_px = float(parent_font_size[:-2])
+        node.style["font-size"] = f"{parent_px * node_pct}px"
+
+
     for child in node.children:
-        style(child)
+        style(child, rules)
+
+
+def tree_to_list(tree, list):
+    list.append(tree)
+    for child in tree.children:
+        tree_to_list(child, list)
+    return list
+
+def cascade_priority(rule):
+    selectors, body = rule
+    return selectors.priority
+
 
 if __name__ == "__main__":
     Browser().load(URL(sys.argv[1]))
