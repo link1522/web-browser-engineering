@@ -22,7 +22,9 @@ class Browser:
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<MouseWheel>", self.mouseScroll)
         self.window.bind("<Configure>", self.resize)
-        self.canvas = tkinter.Canvas(self.window, width=self.width, height=self.height)
+        self.canvas = tkinter.Canvas(
+            self.window, width=self.width, height=self.height, bg="white"
+        )
         self.canvas.pack(fill="both", expand=True)
         self.scroll = 0
 
@@ -72,7 +74,7 @@ class Browser:
             except:
                 continue
             rules.extend(CSSParser(body).parse())
-        style(self.nodes, sorted(rules, key = cascade_priority))
+        style(self.nodes, sorted(rules, key=cascade_priority))
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
         self.display_list = []
@@ -115,7 +117,7 @@ def style(node, rules):
         pairs = CSSParser(node.attributes["style"]).body()
         for property, value in pairs.items():
             node.style[property] = value
-    
+
     if node.style["font-size"].endswith("%"):
         if node.parent:
             parent_font_size = node.parent.style["font-size"]
@@ -124,7 +126,6 @@ def style(node, rules):
         node_pct = float(node.style["font-size"][:-1]) / 100
         parent_px = float(parent_font_size[:-2])
         node.style["font-size"] = f"{parent_px * node_pct}px"
-
 
     for child in node.children:
         style(child, rules)
@@ -135,6 +136,7 @@ def tree_to_list(tree, list):
     for child in tree.children:
         tree_to_list(child, list)
     return list
+
 
 def cascade_priority(rule):
     selectors, body = rule
