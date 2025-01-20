@@ -9,8 +9,6 @@ FONTS = {}
 
 
 class BlockLayout:
-    HSTEP, VSTEP = 13, 18
-
     BLOCK_ELEMENTS = [
         "html",
         "body",
@@ -111,11 +109,6 @@ class BlockLayout:
                 self.recurse(child)
 
     def word(self, node, word):
-        line = self.children[-1]
-        previous_word = line.children[-1] if line.children else None
-        text = TextLayout(node, word, line, previous_word)
-        line.children.append(text)
-
         weight = node.style["font-weight"]
         style = node.style["font-style"]
         if style == "normal":
@@ -126,6 +119,12 @@ class BlockLayout:
 
         if self.cursor_x + w >= self.width:
             self.new_line()
+
+        self.cursor_x += w + font.measure(" ")
+        line = self.children[-1]
+        previous_word = line.children[-1] if line.children else None
+        text = TextLayout(node, word, line, previous_word)
+        line.children.append(text)
 
     def new_line(self):
         self.cursor_x = 0
