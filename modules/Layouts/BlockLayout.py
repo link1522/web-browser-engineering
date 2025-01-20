@@ -1,11 +1,9 @@
-import tkinter.font
+import utils
 from ..Text import Text
 from ..Element import Element
 from ..DrawRect import DrawRect
 from .TextLayout import TextLayout
 from .LineLayout import LineLayout
-
-FONTS = {}
 
 
 class BlockLayout:
@@ -114,7 +112,7 @@ class BlockLayout:
         if style == "normal":
             style = "roman"
         size = int(float(node.style["font-size"][:-2]) * 0.75)
-        font = get_font(size, weight, style)
+        font = utils.get_font(size, weight, style)
         w = font.measure(word)
 
         if self.cursor_x + w >= self.width:
@@ -144,13 +142,3 @@ class BlockLayout:
                 cmds.append(rect)
 
         return cmds
-
-
-def get_font(size, weight, style):
-    key = (size, weight, style)
-
-    if key not in FONTS:
-        font = tkinter.font.Font(size=size, weight=weight, slant=style)
-        label = tkinter.Label(font=font)
-        FONTS[key] = (font, label)
-    return FONTS[key][0]

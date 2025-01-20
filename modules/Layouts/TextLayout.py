@@ -1,4 +1,4 @@
-import tkinter.font
+import utils
 from ..DrawText import DrawText
 
 
@@ -16,7 +16,7 @@ class TextLayout:
         if style == "normal":
             style = "roman"
         size = int(float(self.node.style["font-size"][:-2]) * 0.75)
-        self.font = get_font(size, weight, style)
+        self.font = utils.get_font(size, weight, style)
         self.width = self.font.measure(self.word)
 
         if self.previous:
@@ -30,16 +30,3 @@ class TextLayout:
     def paint(self):
         color = self.node.style["color"]
         return [DrawText(self.x, self.y, self.word, self.font, color)]
-
-
-FONTS = {}
-
-
-def get_font(size, weight, style):
-    key = (size, weight, style)
-
-    if key not in FONTS:
-        font = tkinter.font.Font(size=size, weight=weight, slant=style)
-        label = tkinter.Label(font=font)
-        FONTS[key] = (font, label)
-    return FONTS[key][0]
