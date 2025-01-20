@@ -1,14 +1,13 @@
 import tkinter
-from modules import Element, Tab, URL
-
-WIDTH, HEIGHT = 800, 600
-SCROLL_STEP = 100
+import config
+from modules.Tab import Tab
+from modules.URL import URL
 
 
 class Browser:
     def __init__(self):
-        self.height = HEIGHT
-        self.width = WIDTH
+        self.height = config.HEIGHT
+        self.width = config.WIDTH
         self.tabs = []
         self.active_tab = None
         self.window = tkinter.Tk()
@@ -40,6 +39,7 @@ class Browser:
 
     def handle_click(self, event):
         self.active_tab.handle_click(event.x, event.y)
+        self.draw()
 
     def draw(self):
         self.canvas.delete("all")
@@ -51,22 +51,6 @@ class Browser:
         self.active_tab = new_tab
         self.tabs.append(new_tab)
         self.draw()
-
-
-def paint_tree(layout_object, display_list):
-    display_list.extend(layout_object.paint())
-
-    for child in layout_object.children:
-        if isinstance(child.node, Element) and child.node.tag == "head":
-            continue
-        paint_tree(child, display_list)
-
-
-def tree_to_list(tree, list):
-    list.append(tree)
-    for child in tree.children:
-        tree_to_list(child, list)
-    return list
 
 
 if __name__ == "__main__":

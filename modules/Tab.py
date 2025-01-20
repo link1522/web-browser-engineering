@@ -1,3 +1,4 @@
+import config
 from .URL import URL
 from .Layouts.DocumentLayout import DocumentLayout
 from .HTMLParser import HTMLParser
@@ -5,21 +6,13 @@ from .Element import Element
 from .CSSParser import CSSParser
 from .Text import Text
 
-WIDTH, HEIGHT = 800, 600
-SCROLL_STEP = 100
 DEFAULT_STYLE_SHEET = CSSParser(open("Browser.css").read()).parse()
-INHERITED_PROPERTIES = {
-    "font-size": "16px",
-    "font-style": "normal",
-    "font-weight": "normal",
-    "color": "black",
-}
 
 
 class Tab:
     def __init__(self):
-        self.height = HEIGHT
-        self.width = WIDTH
+        self.height = config.HEIGHT
+        self.width = config.WIDTH
         self.scroll = 0
         self.url = None
 
@@ -44,15 +37,15 @@ class Tab:
             elt = elt.parent
 
     def handle_down(self):
-        max_y = max(self.document.height + 2 * DocumentLayout.VSTEP - HEIGHT, 0)
-        self.scroll = min(self.scroll + SCROLL_STEP, max_y)
+        max_y = max(self.document.height + 2 * config.VSTEP - config.HEIGHT, 0)
+        self.scroll = min(self.scroll + config.SCROLL_STEP, max_y)
 
     def handle_up(self):
-        self.scroll -= SCROLL_STEP
+        self.scroll -= config.SCROLL_STEP
         self.scroll = max(self.scroll, 0)
 
     def handle_mouse_scroll(self, event):
-        max_y = max(self.document.height + 2 * DocumentLayout.VSTEP - HEIGHT, 0)
+        max_y = max(self.document.height + 2 * config.VSTEP - config.HEIGHT, 0)
 
         self.scroll -= event.delta
         if self.scroll < 0:
@@ -96,7 +89,7 @@ class Tab:
     def draw(self, canvas):
         canvas.delete("all")
         for cmd in self.display_list:
-            if cmd.top > self.scroll + HEIGHT or cmd.bottom < self.scroll:
+            if cmd.top > self.scroll + config.HEIGHT or cmd.bottom < self.scroll:
                 continue
             cmd.execute(self.scroll, canvas)
 
@@ -113,7 +106,7 @@ def paint_tree(layout_object, display_list):
 def style(node, rules):
     node.style = {}
 
-    for property, default_value in INHERITED_PROPERTIES.items():
+    for property, default_value in config.INHERITED_PROPERTIES.items():
         if node.parent:
             node.style[property] = node.parent.style[property]
         else:
@@ -134,7 +127,7 @@ def style(node, rules):
         if node.parent:
             parent_font_size = node.parent.style["font-size"]
         else:
-            parent_font_size = INHERITED_PROPERTIES["font-size"]
+            parent_font_size = config.INHERITED_PROPERTIES["font-size"]
         node_pct = float(node.style["font-size"][:-1]) / 100
         parent_px = float(parent_font_size[:-2])
         node.style["font-size"] = f"{parent_px * node_pct}px"
