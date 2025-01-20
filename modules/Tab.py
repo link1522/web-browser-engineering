@@ -10,11 +10,12 @@ DEFAULT_STYLE_SHEET = CSSParser(open("Browser.css").read()).parse()
 
 
 class Tab:
-    def __init__(self):
+    def __init__(self, tab_height):
         self.height = config.HEIGHT
         self.width = config.WIDTH
         self.scroll = 0
         self.url = None
+        self.tab_height = tab_height
 
     def handle_click(self, x, y):
         y += self.scroll
@@ -37,7 +38,7 @@ class Tab:
             elt = elt.parent
 
     def handle_down(self):
-        max_y = max(self.document.height + 2 * config.VSTEP - config.HEIGHT, 0)
+        max_y = max(self.document.height + 2 * config.VSTEP - self.tab_height, 0)
         self.scroll = min(self.scroll + config.SCROLL_STEP, max_y)
 
     def handle_up(self):
@@ -45,7 +46,7 @@ class Tab:
         self.scroll = max(self.scroll, 0)
 
     def handle_mouse_scroll(self, event):
-        max_y = max(self.document.height + 2 * config.VSTEP - config.HEIGHT, 0)
+        max_y = max(self.document.height + 2 * config.VSTEP - self.tab_height, 0)
 
         self.scroll -= event.delta
         if self.scroll < 0:
@@ -86,12 +87,14 @@ class Tab:
         self.display_list = []
         paint_tree(self.document, self.display_list)
 
-    def draw(self, canvas):
-        canvas.delete("all")
+    def draw(self, canvas, offset):
         for cmd in self.display_list:
-            if cmd.top > self.scroll + config.HEIGHT or cmd.bottom < self.scroll:
+            if (
+                cmd.rect.top > self.scroll + self.tab_height
+                or cmd.rect.bottom < self.scroll
+            ):
                 continue
-            cmd.execute(self.scroll, canvas)
+            cmd.execute(self.scroll - offset, canvas)
 
 
 def paint_tree(layout_object, display_list):

@@ -2,6 +2,7 @@ import tkinter
 import config
 from modules.Tab import Tab
 from modules.URL import URL
+from modules.Chrome import Chrome
 
 
 class Browser:
@@ -20,6 +21,7 @@ class Browser:
             self.window, width=self.width, height=self.height, bg="white"
         )
         self.canvas.pack(fill="both", expand=True)
+        self.chrome = Chrome(self)
 
     def handle_down(self, event):
         self.active_tab.handle_down()
@@ -38,15 +40,21 @@ class Browser:
         self.draw()
 
     def handle_click(self, event):
-        self.active_tab.handle_click(event.x, event.y)
+        if event.y < self.chrome.bottom:
+            self.chrome.click(event.x, event.y)
+        else:
+            tab_y = event.y - self.chrome.bottom
+            self.active_tab.handle_click(event.x, tab_y)
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
-        self.active_tab.draw(self.canvas)
+        self.active_tab.draw(self.canvas, self.chrome.bottom)
+        for cmd in self.chrome.paint():
+            cmd.execute(0, self.canvas)
 
     def new_tab(self, url):
-        new_tab = Tab()
+        new_tab = Tab(config.HEIGHT - self.chrome.bottom)
         new_tab.load(url)
         self.active_tab = new_tab
         self.tabs.append(new_tab)

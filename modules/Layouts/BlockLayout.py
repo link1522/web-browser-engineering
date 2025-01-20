@@ -4,6 +4,7 @@ from ..Element import Element
 from ..DrawRect import DrawRect
 from .TextLayout import TextLayout
 from .LineLayout import LineLayout
+from ..Rect import Rect
 
 
 class BlockLayout:
@@ -102,7 +103,7 @@ class BlockLayout:
                 self.word(node, word)
         else:
             if node.tag == "br":
-                self.flush()
+                self.new_line()
             for child in node.children:
                 self.recurse(child)
 
@@ -130,6 +131,9 @@ class BlockLayout:
         new_line = LineLayout(self.node, self, last_line)
         self.children.append(new_line)
 
+    def self_rect(self):
+        return Rect(self.x, self.y, self.x + self.width, self.y + self.height)
+
     def paint(self):
         cmds = []
 
@@ -137,8 +141,7 @@ class BlockLayout:
             bgcolor = self.node.style.get("background-color", "transparent")
 
             if bgcolor != "transparent":
-                x2, y2 = self.x + self.width, self.y + self.height
-                rect = DrawRect(self.x, self.y, x2, y2, bgcolor)
+                rect = DrawRect(self.self_rect(), bgcolor)
                 cmds.append(rect)
 
         return cmds
