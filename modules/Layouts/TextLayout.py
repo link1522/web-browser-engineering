@@ -1,5 +1,5 @@
 import tkinter.font
-from .DrawText import DrawText
+from ..DrawText import DrawText
 
 
 class TextLayout:

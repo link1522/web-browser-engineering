@@ -1,7 +1,7 @@
 import tkinter.font
-from .Text import Text
-from .Element import Element
-from .DrawRect import DrawRect
+from ..Text import Text
+from ..Element import Element
+from ..DrawRect import DrawRect
 from .TextLayout import TextLayout
 from .LineLayout import LineLayout
 
