@@ -1,6 +1,6 @@
 import tkinter
 import sys
-from modules import URL, DocumentLayout, HTMLParser, Element, CSSParser
+from modules import URL, DocumentLayout, HTMLParser, Element, CSSParser, Text
 
 WIDTH, HEIGHT = 800, 600
 SCROLL_STEP = 100
@@ -22,11 +22,34 @@ class Browser:
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<MouseWheel>", self.mouseScroll)
         self.window.bind("<Configure>", self.resize)
+        self.window.bind("<Button-1>", self.click)
         self.canvas = tkinter.Canvas(
             self.window, width=self.width, height=self.height, bg="white"
         )
         self.canvas.pack(fill="both", expand=True)
         self.scroll = 0
+        self.url = None
+
+    def click(self, event):
+        x, y = event.x, event.y
+        y += self.scroll
+
+        objs = [
+            obj
+            for obj in tree_to_list(self.document, [])
+            if obj.x <= x < obj.x + obj.width and obj.y <= y < obj.y + obj.height
+        ]
+        if not objs:
+            return
+
+        elt = objs[-1].node
+        while elt:
+            if isinstance(elt, Text):
+                pass
+            elif elt.tag == "a" and "href" in elt.attributes:
+                url = self.url.resolve(elt.attributes["href"])
+                return self.load(url)
+            elt = elt.parent
 
     def scrolldown(self, event):
         max_y = max(self.document.height + 2 * DocumentLayout.VSTEP - HEIGHT, 0)
@@ -56,6 +79,7 @@ class Browser:
         self.draw()
 
     def load(self, url: URL):
+        self.url = url
         body = url.request()
         self.nodes = HTMLParser(body).parse()
         links = [
