@@ -16,6 +16,7 @@ class Tab:
         self.scroll = 0
         self.url = None
         self.tab_height = tab_height
+        self.history = []
 
     def handle_click(self, x, y):
         y += self.scroll
@@ -63,6 +64,7 @@ class Tab:
 
     def load(self, url: URL):
         self.url = url
+        self.history.append(self.url)
         body = url.request()
         self.nodes = HTMLParser(body).parse()
         links = [
@@ -95,6 +97,12 @@ class Tab:
             ):
                 continue
             cmd.execute(self.scroll - offset, canvas)
+
+    def go_back(self):
+        if len(self.history) > 1:
+            self.history.pop()
+            back = self.history.pop()
+            self.load(back)
 
 
 def paint_tree(layout_object, display_list):
