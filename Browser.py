@@ -17,6 +17,8 @@ class Browser:
         self.window.bind("<MouseWheel>", self.handle_mouse_scroll)
         self.window.bind("<Configure>", self.handle_resize)
         self.window.bind("<Button-1>", self.handle_click)
+        self.window.bind("<Key>", self.handle_key)
+        self.window.bind("<Return>", self.handle_enter)
         self.canvas = tkinter.Canvas(
             self.window, width=self.width, height=self.height, bg="white"
         )
@@ -45,6 +47,18 @@ class Browser:
         else:
             tab_y = event.y - self.chrome.bottom
             self.active_tab.handle_click(event.x, tab_y)
+        self.draw()
+
+    def handle_key(self, event):
+        if len(event.char) == 0:
+            return
+        if not (0x20 <= ord(event.char) <= 0x7F):
+            return
+        self.chrome.keypress(event.char)
+        self.draw()
+
+    def handle_enter(self, event):
+        self.chrome.enter()
         self.draw()
 
     def draw(self):
