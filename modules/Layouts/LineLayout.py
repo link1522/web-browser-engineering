@@ -30,3 +30,6 @@ class LineLayout:
 
     def paint(self):
         return []
+
+    def should_paint(self):
+        return False

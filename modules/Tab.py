@@ -17,8 +17,10 @@ class Tab:
         self.url = None
         self.tab_height = tab_height
         self.history = []
+        self.focus = None
 
     def handle_click(self, x, y):
+        self.focus = None
         y += self.scroll
 
         objs = [
@@ -36,6 +38,13 @@ class Tab:
             elif elt.tag == "a" and "href" in elt.attributes:
                 url = self.url.resolve(elt.attributes["href"])
                 return self.load(url)
+            elif elt.tag == "input":
+                elt.attributes["value"] = ""
+                if self.focus:
+                    self.focus.is_focus = False
+                self.focus = elt
+                elt.is_focus = True
+                return self.render()
             elt = elt.parent
 
     def handle_down(self):
@@ -62,6 +71,11 @@ class Tab:
         self.document.layout()
         paint_tree(self.document, self.display_list)
 
+    def keypress(self, char):
+        if self.focus:
+            self.focus.attributes["value"] += char
+            self.render()
+
     def load(self, url: URL):
         self.url = url
         self.history.append(self.url)
@@ -75,15 +89,19 @@ class Tab:
             and node.attributes.get("rel") == "stylesheet"
             and "href" in node.attributes
         ]
-        rules = DEFAULT_STYLE_SHEET.copy()
+        self.rules = DEFAULT_STYLE_SHEET.copy()
         for link in links:
             style_url = url.resolve(link)
             try:
                 body = style_url.request()
             except:
                 continue
-            rules.extend(CSSParser(body).parse())
-        style(self.nodes, sorted(rules, key=cascade_priority))
+            self.rules.extend(CSSParser(body).parse())
+
+        self.render()
+
+    def render(self):
+        style(self.nodes, sorted(self.rules, key=cascade_priority))
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
         self.display_list = []
@@ -106,7 +124,8 @@ class Tab:
 
 
 def paint_tree(layout_object, display_list):
-    display_list.extend(layout_object.paint())
+    if layout_object.should_paint():
+        display_list.extend(layout_object.paint())
 
     for child in layout_object.children:
         if isinstance(child.node, Element) and child.node.tag == "head":

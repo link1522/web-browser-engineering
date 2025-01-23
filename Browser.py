@@ -43,8 +43,11 @@ class Browser:
 
     def handle_click(self, event):
         if event.y < self.chrome.bottom:
+            self.focus = None
             self.chrome.click(event.x, event.y)
         else:
+            self.focus = "content"
+            self.chrome.blur()
             tab_y = event.y - self.chrome.bottom
             self.active_tab.handle_click(event.x, tab_y)
         self.draw()
@@ -54,8 +57,11 @@ class Browser:
             return
         if not (0x20 <= ord(event.char) <= 0x7F):
             return
-        self.chrome.keypress(event.char)
-        self.draw()
+        if self.chrome.keypress(event.char):
+            self.draw()
+        elif self.focus == "content":
+            self.active_tab.keypress(event.char)
+            self.draw()
 
     def handle_enter(self, event):
         self.chrome.enter()

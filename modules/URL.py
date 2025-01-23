@@ -103,6 +103,9 @@ class URL:
             return URL(self.scheme + "://" + self.host + ":" + str(self.port) + url)
 
     def __str__(self):
+        if self.scheme == "file":
+            return "file://" + self.path
+
         port_part = ":" + str(self.port)
         if self.scheme == "https" and self.port == 443:
             port_part = ""

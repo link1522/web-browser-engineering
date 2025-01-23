@@ -4,6 +4,7 @@ from ..Element import Element
 from ..DrawRect import DrawRect
 from .TextLayout import TextLayout
 from .LineLayout import LineLayout
+from .InputLayout import InputLayout
 from ..Rect import Rect
 
 
@@ -92,7 +93,7 @@ class BlockLayout:
             ]
         ):
             return "block"
-        elif self.node.children:
+        elif self.node.children or self.node.tag == "input":
             return "inline"
         else:
             return "block"
@@ -104,8 +105,11 @@ class BlockLayout:
         else:
             if node.tag == "br":
                 self.new_line()
-            for child in node.children:
-                self.recurse(child)
+            elif node.tag == "input" or node.tag == "button":
+                self.input(node)
+            else:
+                for child in node.children:
+                    self.recurse(child)
 
     def word(self, node, word):
         weight = node.style["font-weight"]
@@ -131,6 +135,24 @@ class BlockLayout:
         new_line = LineLayout(self.node, self, last_line)
         self.children.append(new_line)
 
+    def input(self, node):
+        w = InputLayout.INPUT_WIDTH_PX
+        if self.cursor_x + w >= self.width:
+            self.new_line()
+        line = self.children[-1]
+        privious_word = line.children[-1] if line.children else None
+        input = InputLayout(node, self, privious_word)
+        line.children.append(input)
+
+        weight = node.style["font-weight"]
+        style = node.style["font-style"]
+        if style == "normal":
+            style = "roman"
+        size = int(float(node.style["font-size"][:-2]) * 0.75)
+        font = utils.get_font(size, weight, style)
+
+        self.cursor_x += w + font.measure(" ")
+
     def self_rect(self):
         return Rect(self.x, self.y, self.x + self.width, self.y + self.height)
 
@@ -145,3 +167,8 @@ class BlockLayout:
                 cmds.append(rect)
 
         return cmds
+
+    def should_paint(self):
+        return isinstance(self.node, Text) or (
+            self.node.tag != "input" and self.node.tag != "button"
+        )
