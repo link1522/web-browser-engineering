@@ -1,3 +1,4 @@
+import dukpy
 import urllib
 import urllib.parse
 import config
@@ -7,6 +8,7 @@ from .HTMLParser import HTMLParser
 from .Element import Element
 from .CSSParser import CSSParser
 from .Text import Text
+from .JSContext import JSContext
 
 DEFAULT_STYLE_SHEET = CSSParser(open("Browser.css").read()).parse()
 
@@ -124,6 +126,22 @@ class Tab:
             except:
                 continue
             self.rules.extend(CSSParser(body).parse())
+
+        scripts = [
+            node.attributes["src"]
+            for node in tree_to_list(self.nodes, [])
+            if isinstance(node, Element)
+            and node.tag == "script"
+            and "src" in node.attributes
+        ]
+        self.js = JSContext()
+        for script in scripts:
+            script_url = url.resolve(script)
+            try:
+                body = script_url.request()
+            except:
+                continue
+            self.js.run(body)
 
         self.render()
 
