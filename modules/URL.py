@@ -107,6 +107,8 @@ class URL:
             url = dir + "/" + url
         if url.startswith("//"):
             return URL(self.scheme + ":" + url)
+        elif self.scheme == "file":
+            return URL(self.scheme + "://" + url)
         else:
             return URL(self.scheme + "://" + self.host + ":" + str(self.port) + url)
 
