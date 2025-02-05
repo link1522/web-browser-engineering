@@ -9,6 +9,7 @@ from .Element import Element
 from .CSSParser import CSSParser
 from .Text import Text
 from .JSContext import JSContext
+import utils
 
 DEFAULT_STYLE_SHEET = CSSParser(open("Browser.css").read()).parse()
 
@@ -29,7 +30,7 @@ class Tab:
 
         objs = [
             obj
-            for obj in tree_to_list(self.document, [])
+            for obj in utils.tree_to_list(self.document, [])
             if obj.x <= x < obj.x + obj.width and obj.y <= y < obj.y + obj.height
         ]
         if not objs:
@@ -88,7 +89,7 @@ class Tab:
     def submit_form(self, elt):
         inputs = [
             node
-            for node in tree_to_list(elt, [])
+            for node in utils.tree_to_list(elt, [])
             if isinstance(node, Element)
             and node.tag == "input"
             and "name" in node.attributes
@@ -112,7 +113,7 @@ class Tab:
         self.nodes = HTMLParser(body).parse()
         links = [
             node.attributes["href"]
-            for node in tree_to_list(self.nodes, [])
+            for node in utils.tree_to_list(self.nodes, [])
             if isinstance(node, Element)
             and node.tag == "link"
             and node.attributes.get("rel") == "stylesheet"
@@ -129,19 +130,19 @@ class Tab:
 
         scripts = [
             node.attributes["src"]
-            for node in tree_to_list(self.nodes, [])
+            for node in utils.tree_to_list(self.nodes, [])
             if isinstance(node, Element)
             and node.tag == "script"
             and "src" in node.attributes
         ]
-        self.js = JSContext()
+        self.js = JSContext(self)
         for script in scripts:
             script_url = url.resolve(script)
             try:
                 body = script_url.request()
             except:
                 continue
-            self.js.run(body)
+            self.js.run(script, body)
 
         self.render()
 
@@ -209,13 +210,6 @@ def style(node, rules):
 
     for child in node.children:
         style(child, rules)
-
-
-def tree_to_list(tree, list):
-    list.append(tree)
-    for child in tree.children:
-        tree_to_list(child, list)
-    return list
 
 
 def cascade_priority(rule):

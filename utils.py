@@ -17,3 +17,10 @@ def get_font(size, weight, style):
         label = tkinter.Label(font=font)
         FONTS[key] = (font, label)
     return FONTS[key][0]
+
+
+def tree_to_list(tree, list):
+    list.append(tree)
+    for child in tree.children:
+        tree_to_list(child, list)
+    return list
