@@ -41,9 +41,11 @@ class Tab:
             if isinstance(elt, Text):
                 pass
             elif elt.tag == "a" and "href" in elt.attributes:
+                self.js.dispatch_event("click", elt)
                 url = self.url.resolve(elt.attributes["href"])
                 return self.load(url)
             elif elt.tag == "input":
+                self.js.dispatch_event("click", elt)
                 elt.attributes["value"] = ""
                 if self.focus:
                     self.focus.is_focus = False
@@ -51,6 +53,7 @@ class Tab:
                 elt.is_focus = True
                 return self.render()
             elif elt.tag == "button":
+                self.js.dispatch_event("click", elt)
                 while elt:
                     if elt.tag == "form" and "action" in elt.attributes:
                         return self.submit_form(elt)
@@ -83,10 +86,12 @@ class Tab:
 
     def keypress(self, char):
         if self.focus:
+            self.js.dispatch_event("keydown", self.focus)
             self.focus.attributes["value"] += char
             self.render()
 
     def submit_form(self, elt):
+        self.js.dispatch_event("submit", self.focus)
         inputs = [
             node
             for node in utils.tree_to_list(elt, [])
