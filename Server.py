@@ -46,6 +46,12 @@ def handle_connection(conx):
 def do_request(method, url, headers, body):
     if method == "GET" and url == "/":
         return "200 OK", show_comment()
+    elif method == "GET" and url == "/comment.js":
+        with open("comment.js") as f:
+            return "200 OK", f.read()
+    elif method == "GET" and url == "/comment.css":
+        with open("comment.css") as f:
+            return "200 OK", f.read()
     elif method == "POST" and url == "/add":
         params = form_decode(body)
         return "200 OK", add_entry(params)
@@ -55,12 +61,15 @@ def do_request(method, url, headers, body):
 
 def show_comment():
     out = "<!doctype html>"
+    out += '<link rel="stylesheet" href="/comment.css">'
     for entry in ENTRIES:
         out += f"<p>{entry}</p>"
     out += "<form action=add method=post>"
     out += "  <p><input name=guest></p>"
+    out += "  <strong></strong>"
     out += "  <p><button>Sign the book!</button></p>"
     out += "</form>"
+    out += "<script src=/comment.js></script>"
     return out
 
 
