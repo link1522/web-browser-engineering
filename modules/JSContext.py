@@ -50,8 +50,11 @@ class JSContext:
 
     def dispatch_event(self, type, elt):
         handle = self.node_to_handle.get(elt, -1)
-        EVENT_DISPATCH_JS = "new Node(dukpy.handle).dispatchEvent(dukpy.type)"
-        self.interp.evaljs(EVENT_DISPATCH_JS, type=type, handle=handle)
+        EVENT_DISPATCH_JS = (
+            "new Node(dukpy.handle).dispatchEvent(new Event(dukpy.type))"
+        )
+        do_default = self.interp.evaljs(EVENT_DISPATCH_JS, type=type, handle=handle)
+        return not do_default
 
     def innerHTML_set(self, handle, s):
         doc = HTMLParser("<html><body>" + s + "</body></html>").parse()

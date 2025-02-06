@@ -84,7 +84,7 @@ def form_decode(body):
 
 
 def add_entry(params):
-    if "guest" in params:
+    if "guest" in params and len(params["guest"]) <= 10:
         ENTRIES.append(params["guest"])
     return show_comment()
 
