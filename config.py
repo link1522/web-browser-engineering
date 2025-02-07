@@ -7,3 +7,5 @@ INHERITED_PROPERTIES = {
     "font-weight": "normal",
     "color": "black",
 }
+
+COOKIE_JAR = {}

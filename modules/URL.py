@@ -1,5 +1,6 @@
 import socket
 import ssl
+import config
 
 
 class URL:
@@ -63,6 +64,10 @@ class URL:
         if payload:
             headers["Content-Length"] = len(payload.encode("utf8"))
 
+        if self.host in config.COOKIE_JAR:
+            cookie = config.COOKIE_JAR[self.host]
+            headers["Cookie"] = cookie
+
         for header, value in headers.items():
             request += "{}: {}\r\n".format(header, value)
         request += "\r\n"
@@ -84,6 +89,10 @@ class URL:
 
         assert "transfer-encoding" not in response_headers
         assert "content-encoding" not in response_headers
+
+        if "set-cookie" in response_headers:
+            cookie = response_headers["set-cookie"]
+            config.COOKIE_JAR[self.host] = cookie
 
         content = response.read()
         s.close()
