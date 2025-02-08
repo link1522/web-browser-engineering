@@ -86,8 +86,11 @@ def show_comment(session):
         out += f"<p>{entry} \n <i>by {who}</i></p>"
 
     if "user" in session:
+        nonce = str(random.random())[2:]
+        session["nonce"] = nonce
         out += f"<h1>Hello, {session["user"]}</h1>"
         out += "<form action=add method=post>"
+        out += f'  <input type=hidden name=nonce value="{nonce}">'
         out += "  <p><input name=guest></p>"
         out += "  <strong></strong>"
         out += "  <p><button>Sign the book!</button></p>"
@@ -110,6 +113,8 @@ def form_decode(body):
 
 
 def add_entry(session, params):
+    if "nonce" not in session or "nonce" not in params:
+        return
     if "user" not in session:
         return
     if "guest" in params and len(params["guest"]) <= 10:
