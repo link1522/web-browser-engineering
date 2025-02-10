@@ -64,11 +64,11 @@ class JSContext:
         for child in elt.children:
             child.parent = elt
         self.tab.render()
-    
+
     def XMLHttpRequest_send(self, method, url, body):
         full_url = self.tab.url.resolve(url)
         if full_url.origin() != self.tab.url.origin():
             raise Exception("Cross-origin XML request not allowed")
-        
-        headers, out = full_url.request(body)
+
+        headers, out = full_url.request(self.tab.url, body)
         return out

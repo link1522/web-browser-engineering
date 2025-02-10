@@ -117,9 +117,9 @@ class Tab:
         self.load(url, body)
 
     def load(self, url: URL, payload=None):
+        body = url.request(self.url, payload)
         self.url = url
         self.history.append(self.url)
-        body = url.request(payload)
         self.nodes = HTMLParser(body).parse()
         links = [
             node.attributes["href"]
@@ -133,7 +133,7 @@ class Tab:
         for link in links:
             style_url = url.resolve(link)
             try:
-                body = style_url.request()
+                body = style_url.request(url)
             except:
                 continue
             self.rules.extend(CSSParser(body).parse())
@@ -149,7 +149,7 @@ class Tab:
         for script in scripts:
             script_url = url.resolve(script)
             try:
-                body = script_url.request()
+                body = script_url.request(url)
             except:
                 continue
             self.js.run(script, body)

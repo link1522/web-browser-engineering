@@ -49,7 +49,7 @@ def handle_connection(conx):
 
     response = "HTTP/1.0 {}\r\n".format(status)
     if "cookie" not in headers:
-        response += "Set-Cookie: token={}\r\n".format(token)
+        response += "Set-Cookie: token={}; SameSite=Lax\r\n".format(token)
     if body is not None:
         response += "Content-Length: {}\r\n".format(len(body))
         response += "\r\n" + body

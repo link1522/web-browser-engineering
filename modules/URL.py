@@ -30,16 +30,16 @@ class URL:
 
         return host, path, port
 
-    def request(self, payload=None) -> str:
+    def request(self, referer, payload=None) -> str:
         if self.scheme == "data":
             content = self.path.split(",", 1)[1]
             return content
         elif self.scheme in ["http", "https"]:
-            return self._fetchDataFromHttp(payload)
+            return self._fetchDataFromHttp(referer, payload)
         elif self.scheme == "file":
             return self._fetchDataFromLocal()
 
-    def _fetchDataFromHttp(self, payload=None) -> str:
+    def _fetchDataFromHttp(self, referer, payload=None) -> str:
         s = socket.socket(
             family=socket.AF_INET,
             type=socket.SOCK_STREAM,
@@ -65,8 +65,13 @@ class URL:
             headers["Content-Length"] = len(payload.encode("utf8"))
 
         if self.host in config.COOKIE_JAR:
-            cookie = config.COOKIE_JAR[self.host]
-            headers["Cookie"] = cookie
+            cookie, params = config.COOKIE_JAR[self.host]
+            allow_cookie = True
+            if referer and params.get("samesite", "none") == "lax":
+                if method != "GET":
+                    allow_cookie = self.host == referer.host
+            if allow_cookie:
+                headers["Cookie"] = cookie
 
         for header, value in headers.items():
             request += "{}: {}\r\n".format(header, value)
@@ -92,7 +97,17 @@ class URL:
 
         if "set-cookie" in response_headers:
             cookie = response_headers["set-cookie"]
-            config.COOKIE_JAR[self.host] = cookie
+            params = {}
+            if ";" in cookie:
+                cookie, rest = cookie.split(";", 1)
+                for param in rest.split(";"):
+                    if "=" in param:
+                        param, value = param.split("=", 1)
+                    else:
+                        value = True
+                    params[param.strip().casefold()] = value.casefold()
+
+            config.COOKIE_JAR[self.host] = (cookie, params)
 
         content = response.read()
         s.close()
@@ -122,8 +137,7 @@ class URL:
             return URL(self.scheme + "://" + self.host + ":" + str(self.port) + url)
 
     def origin(self):
-        return self.scheme + "://" + self.host + ":" + str(self.port) 
-
+        return self.scheme + "://" + self.host + ":" + str(self.port)
 
     def __str__(self):
         if self.scheme == "file":
