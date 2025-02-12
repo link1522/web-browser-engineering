@@ -2,6 +2,7 @@ import socket
 import random
 import urllib
 import urllib.parse
+import html
 
 ENTRIES = [
     ("No names. We are nameless!", "cerealkiller"),
@@ -83,7 +84,7 @@ def show_comment(session):
     out = "<!doctype html>"
     out += '<link rel="stylesheet" href="/comment.css">'
     for entry, who in ENTRIES:
-        out += f"<p>{entry} \n <i>by {who}</i></p>"
+        out += f"<p>{html.escape(entry)} \n <i>by {html.escape(who)}</i></p>"
 
     if "user" in session:
         nonce = str(random.random())[2:]
