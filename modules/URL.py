@@ -30,16 +30,16 @@ class URL:
 
         return host, path, port
 
-    def request(self, referer, payload=None) -> str:
+    def request(self, referer, payload=None):
         if self.scheme == "data":
             content = self.path.split(",", 1)[1]
-            return content
+            return {}, content
         elif self.scheme in ["http", "https"]:
             return self._fetchDataFromHttp(referer, payload)
         elif self.scheme == "file":
             return self._fetchDataFromLocal()
 
-    def _fetchDataFromHttp(self, referer, payload=None) -> str:
+    def _fetchDataFromHttp(self, referer, payload=None):
         s = socket.socket(
             family=socket.AF_INET,
             type=socket.SOCK_STREAM,
@@ -112,12 +112,12 @@ class URL:
         content = response.read()
         s.close()
 
-        return content
+        return response_headers, content
 
     def _fetchDataFromLocal(self) -> str:
         with open(self.path, "r", encoding="utf8") as file:
             content = file.read()
-            return content
+            return {}, content
 
     def resolve(self, url):
         if "://" in url:
@@ -168,7 +168,7 @@ def lex(body):
 
 
 def load(url: URL):
-    body = url.request()
+    _, body = url.request()
     lex(body)
 
 

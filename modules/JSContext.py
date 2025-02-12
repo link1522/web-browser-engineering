@@ -67,6 +67,8 @@ class JSContext:
 
     def XMLHttpRequest_send(self, method, url, body):
         full_url = self.tab.url.resolve(url)
+        if not self.tab.allow_request(full_url):
+            raise Exception("Cross-origin XMR Blocked by CSP")
         if full_url.origin() != self.tab.url.origin():
             raise Exception("Cross-origin XML request not allowed")
 

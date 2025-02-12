@@ -49,6 +49,8 @@ def handle_connection(conx):
     status, body = do_request(session, method, url, headers, body)
 
     response = "HTTP/1.0 {}\r\n".format(status)
+    csp = "default-src http://localhost:8000"
+    response += "Content-Security-Policy: {}\r\n".format(csp)
     if "cookie" not in headers:
         response += "Set-Cookie: token={}; SameSite=Lax\r\n".format(token)
     if body is not None:
@@ -100,6 +102,7 @@ def show_comment(session):
         out += "<a href=/login>Sign in to write in the guest book</a>"
 
     out += "<script src=/comment.js></script>"
+    out += "<script src=https://example.com/evil.js></script>"
     return out
 
 

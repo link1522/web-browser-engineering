@@ -117,10 +117,19 @@ class Tab:
         self.load(url, body)
 
     def load(self, url: URL, payload=None):
-        body = url.request(self.url, payload)
+        headers, body = url.request(self.url, payload)
         self.url = url
         self.history.append(self.url)
         self.nodes = HTMLParser(body).parse()
+
+        self.allow_origins = None
+        if "content-security-policy" in headers:
+            csp = headers["content-security-policy"].split()
+            if len(csp) > 0 and csp[0] == "default-src":
+                self.allow_origins = []
+                for origin in csp[1:]:
+                    self.allow_origins.append(URL(origin).origin())
+
         links = [
             node.attributes["href"]
             for node in utils.tree_to_list(self.nodes, [])
@@ -132,8 +141,11 @@ class Tab:
         self.rules = DEFAULT_STYLE_SHEET.copy()
         for link in links:
             style_url = url.resolve(link)
+            if not self.allow_request(style_url):
+                print("Blocked style sheet", link, "due to CSP")
+                continue
             try:
-                body = style_url.request(url)
+                _, body = style_url.request(url)
             except:
                 continue
             self.rules.extend(CSSParser(body).parse())
@@ -148,13 +160,19 @@ class Tab:
         self.js = JSContext(self)
         for script in scripts:
             script_url = url.resolve(script)
+            if not self.allow_request(script_url):
+                print("Blocked script", script, "due to CSP")
+                continue
             try:
-                body = script_url.request(url)
+                _, body = script_url.request(url)
             except:
                 continue
             self.js.run(script, body)
 
         self.render()
+
+    def allow_request(self, url):
+        return self.allow_origins == None or url.origin() in self.allow_origins
 
     def render(self):
         style(self.nodes, sorted(self.rules, key=cascade_priority))
