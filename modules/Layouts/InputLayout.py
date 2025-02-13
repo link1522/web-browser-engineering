@@ -1,9 +1,9 @@
+import skia
 import utils
 from ..DrawText import DrawText
 from ..DrawRect import DrawRect
 from ..DrawLine import DrawLine
 from ..Text import Text
-from ..Rect import Rect
 
 
 class InputLayout:
@@ -25,15 +25,17 @@ class InputLayout:
         self.width = InputLayout.INPUT_WIDTH_PX
 
         if self.previous:
-            space = self.previous.font.measure(" ")
+            space = self.previous.font.measureText(" ")
             self.x = self.previous.x + space + self.previous.width
         else:
             self.x = self.parent.x
 
-        self.height = self.font.metrics("linespace")
+        self.height = utils.linespace(self.font)
 
     def self_rect(self):
-        return Rect(self.x, self.y, self.x + self.width, self.y + self.height)
+        return skia.Rect.MakeLTRB(
+            self.x, self.y, self.x + self.width, self.y + self.height
+        )
 
     def paint(self):
         cmds = []
@@ -56,7 +58,7 @@ class InputLayout:
         cmds.append(DrawText(self.x, self.y, text, self.font, color))
 
         if self.node.is_focus:
-            cx = self.x + self.font.measure(text)
+            cx = self.x + self.font.measureText(text)
             cmds.append(DrawLine(cx, self.y, cx, self.y + self.height, "black", 1))
 
         return cmds

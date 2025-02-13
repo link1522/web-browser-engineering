@@ -1,6 +1,7 @@
 from .TagSelector import TagSelector
 from .DescendantSelector import DescendantSelector
 
+
 class CSSParser:
     def __init__(self, s):
         self.s = s
@@ -22,7 +23,7 @@ class CSSParser:
                     self.whitespace()
                 else:
                     break
-        
+
         return pairs
 
     def pair(self):
@@ -36,7 +37,7 @@ class CSSParser:
     def whitespace(self):
         while self.i < len(self.s) and self.s[self.i].isspace():
             self.i += 1
-        
+
     def word(self):
         start = self.i
         while self.i < len(self.s):
@@ -46,13 +47,13 @@ class CSSParser:
                 break
         if not (self.i > start):
             raise Exception("Parsing error")
-        return self.s[start:self.i]
-    
+        return self.s[start : self.i]
+
     def literal(self, literal):
         if not (self.i < len(self.s)) and self.s[self.i] == literal:
             raise Exception("Parsing error")
         self.i += 1
-    
+
     def ignore_until(self, chars):
         while self.i < len(self.s):
             if self.s[self.i] in chars:
@@ -64,7 +65,7 @@ class CSSParser:
     def parse(self):
         rules = []
         while self.i < len(self.s):
-            try: 
+            try:
                 self.whitespace()
                 selector = self.selector()
                 self.literal("{")
@@ -81,7 +82,7 @@ class CSSParser:
                 else:
                     break
         return rules
-    
+
     def selector(self):
         out = TagSelector(self.word().casefold())
         self.whitespace()
@@ -89,5 +90,5 @@ class CSSParser:
             tag = self.word()
             decendant = TagSelector(tag.casefold())
             out = DescendantSelector(out, decendant)
-            self.whitespace
+            self.whitespace()
         return out

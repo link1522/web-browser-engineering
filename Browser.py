@@ -1,5 +1,8 @@
-import tkinter
+import sdl2
+import skia
 import config
+import utils
+import sys
 from modules.Tab import Tab
 from modules.URL import URL
 from modules.Chrome import Chrome
@@ -7,29 +10,45 @@ from modules.Chrome import Chrome
 
 class Browser:
     def __init__(self):
+        if sdl2.SDL_BYTEORDER == sdl2.SDL_BIG_ENDIAN:
+            self.RED_MASK = 0xFF000000
+            self.GREEN_MASK = 0x00FF0000
+            self.BLUE_MASK = 0x0000FF00
+            self.ALPHA_MASK = 0x000000FF
+        else:
+            self.RED_MASK = 0x000000FF
+            self.GREEN_MASK = 0x0000FF00
+            self.BLUE_MASK = 0x00FF0000
+            self.ALPHA_MASK = 0xFF000000
+
+        self.sdl_window = sdl2.SDL_CreateWindow(
+            b"Browser",
+            sdl2.SDL_WINDOWPOS_CENTERED,
+            sdl2.SDL_WINDOWPOS_CENTERED,
+            config.WIDTH,
+            config.HEIGHT,
+            sdl2.SDL_WINDOW_SHOWN,
+        )
+
+        self.root_surface = skia.Surface.MakeRaster(
+            skia.ImageInfo.Make(
+                config.WIDTH,
+                config.HEIGHT,
+                ct=skia.kRGBA_8888_ColorType,
+                at=skia.kUnpremul_AlphaType,
+            )
+        )
         self.height = config.HEIGHT
         self.width = config.WIDTH
         self.tabs = []
         self.active_tab = None
-        self.window = tkinter.Tk()
-        self.window.bind("<Down>", self.handle_down)
-        self.window.bind("<Up>", self.handle_up)
-        self.window.bind("<MouseWheel>", self.handle_mouse_scroll)
-        self.window.bind("<Configure>", self.handle_resize)
-        self.window.bind("<Button-1>", self.handle_click)
-        self.window.bind("<Key>", self.handle_key)
-        self.window.bind("<Return>", self.handle_enter)
-        self.canvas = tkinter.Canvas(
-            self.window, width=self.width, height=self.height, bg="white"
-        )
-        self.canvas.pack(fill="both", expand=True)
         self.chrome = Chrome(self)
 
-    def handle_down(self, event):
+    def handle_down(self):
         self.active_tab.handle_down()
         self.draw()
 
-    def handle_up(self, event):
+    def handle_up(self):
         self.active_tab.handle_up()
         self.draw()
 
@@ -67,8 +86,33 @@ class Browser:
         self.chrome.enter()
         self.draw()
 
+    def handle_quit(self):
+        sdl2.SDL_DestroyWindow(self.sdl_window)
+
     def draw(self):
-        self.canvas.delete("all")
+        skia_image = self.root_surface.makeImageSnapshot()
+        skia_bytes = skia_image.tobytes()
+
+        depth = 32
+        pitch = 4 * config.WIDTH
+        sdl_surface = sdl2.SDL_CreateRGBSurfaceFrom(
+            skia_bytes,
+            config.WIDTH,
+            config.HEIGHT,
+            depth,
+            pitch,
+            self.RED_MASK,
+            self.GREEN_MASK,
+            self.BLUE_MASK,
+            self.ALPHA_MASK,
+        )
+        rect = sdl2.SDL_Rect(0, 0, config.WIDTH, config.HEIGHT)
+        window_surface = sdl2.SDL_GetWindowSurface(self.sdl_window)
+        sdl2.SDL_BlitSurface(sdl_surface, rect, window_surface, rect)
+        sdl2.SDL_UpdateWindowSurface(self.sdl_window)
+
+        self.canvas = self.root_surface.getCanvas()
+
         self.active_tab.draw(self.canvas, self.chrome.bottom)
         for cmd in self.chrome.paint():
             cmd.execute(0, self.canvas)
@@ -82,7 +126,7 @@ class Browser:
 
 
 if __name__ == "__main__":
-    import sys
-
-    Browser().new_tab(URL(sys.argv[1]))
-    tkinter.mainloop()
+    sdl2.SDL_Init(sdl2.SDL_INIT_EVENTS)
+    browser = Browser()
+    browser.new_tab(URL(sys.argv[1]))
+    utils.mainloop(browser)

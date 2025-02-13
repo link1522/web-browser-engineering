@@ -17,15 +17,15 @@ class TextLayout:
             style = "roman"
         size = int(float(self.node.style["font-size"][:-2]) * 0.75)
         self.font = utils.get_font(size, weight, style)
-        self.width = self.font.measure(self.word)
+        self.width = self.font.measureText(self.word)
 
         if self.previous:
-            space = self.previous.font.measure(" ")
+            space = self.previous.font.measureText(" ")
             self.x = self.previous.x + space + self.previous.width
         else:
             self.x = self.parent.x
 
-        self.height = self.font.metrics("linespace")
+        self.height = utils.linespace(self.font)
 
     def paint(self):
         color = self.node.style["color"]

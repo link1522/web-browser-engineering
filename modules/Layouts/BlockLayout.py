@@ -1,11 +1,11 @@
+import skia
 import utils
 from ..Text import Text
 from ..Element import Element
-from ..DrawRect import DrawRect
+from ..DrawRRect import DrawRRect
 from .TextLayout import TextLayout
 from .LineLayout import LineLayout
 from .InputLayout import InputLayout
-from ..Rect import Rect
 
 
 class BlockLayout:
@@ -118,12 +118,12 @@ class BlockLayout:
             style = "roman"
         size = int(float(node.style["font-size"][:-2]) * 0.75)
         font = utils.get_font(size, weight, style)
-        w = font.measure(word)
+        w = font.measureText(word)
 
         if self.cursor_x + w >= self.width:
             self.new_line()
 
-        self.cursor_x += w + font.measure(" ")
+        self.cursor_x += w + font.measureText(" ")
         line = self.children[-1]
         previous_word = line.children[-1] if line.children else None
         text = TextLayout(node, word, line, previous_word)
@@ -151,10 +151,12 @@ class BlockLayout:
         size = int(float(node.style["font-size"][:-2]) * 0.75)
         font = utils.get_font(size, weight, style)
 
-        self.cursor_x += w + font.measure(" ")
+        self.cursor_x += w + font.measureText(" ")
 
     def self_rect(self):
-        return Rect(self.x, self.y, self.x + self.width, self.y + self.height)
+        return skia.Rect.MakeLTRB(
+            self.x, self.y, self.x + self.width, self.y + self.height
+        )
 
     def paint(self):
         cmds = []
@@ -163,8 +165,8 @@ class BlockLayout:
             bgcolor = self.node.style.get("background-color", "transparent")
 
             if bgcolor != "transparent":
-                rect = DrawRect(self.self_rect(), bgcolor)
-                cmds.append(rect)
+                radius = float(self.node.style.get("border-radius", "0px")[:-2])
+                cmds.append(DrawRRect(self.self_rect(), radius, bgcolor))
 
         return cmds
 

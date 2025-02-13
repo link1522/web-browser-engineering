@@ -17,14 +17,14 @@ class LineLayout:
         for word in self.children:
             word.layout()
 
-        max_accent = max(
-            [word.font.metrics("ascent") for word in self.children], default=0
+        max_accent = -min(
+            [word.font.getMetrics().fAscent for word in self.children], default=0
         )
         baseline = self.y + 1.25 * max_accent
         for word in self.children:
-            word.y = baseline - word.font.metrics("ascent")
+            word.y = baseline + word.font.getMetrics().fAscent
         max_descent = max(
-            [word.font.metrics("descent") for word in self.children], default=0
+            [word.font.getMetrics().fDescent for word in self.children], default=0
         )
         self.height = (max_accent + max_descent) * 1.25
 
