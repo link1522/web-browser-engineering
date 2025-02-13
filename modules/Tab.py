@@ -183,10 +183,6 @@ class Tab:
         paint_tree(self.document, self.display_list)
 
     def draw(self, canvas, offset):
-        DrawRect(
-            skia.Rect.MakeLTRB(0, 0, config.WIDTH, config.HEIGHT), "white"
-        ).execute(self.scroll - offset, canvas)
-
         for cmd in self.display_list:
             if (
                 cmd.rect.top() > self.scroll + self.tab_height

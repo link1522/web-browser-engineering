@@ -60,16 +60,16 @@ class Chrome:
     def click(self, x, y):
         self.focus = None
 
-        if self.newtab_rect.contains_point(x, y):
+        if self.newtab_rect.contains(x, y):
             self.browser.new_tab(URL("https://browser.engineering/"))
-        elif self.back_rect.contains_point(x, y):
+        elif self.back_rect.contains(x, y):
             self.browser.active_tab.go_back()
-        elif self.address_rect.contains_point(x, y):
+        elif self.address_rect.contains(x, y):
             self.focus = "address bar"
             self.address_bar = ""
         else:
             for i, tab in enumerate(self.browser.tabs):
-                if self.tab_rect(i).contains_point(x, y):
+                if self.tab_rect(i).contains(x, y):
                     self.browser.active_tab = tab
                     break
 
