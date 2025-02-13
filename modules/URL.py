@@ -104,7 +104,7 @@ class URL:
                     if "=" in param:
                         param, value = param.split("=", 1)
                     else:
-                        value = True
+                        value = "true"
                     params[param.strip().casefold()] = value.casefold()
 
             config.COOKIE_JAR[self.host] = (cookie, params)

@@ -75,7 +75,8 @@ class Tab:
     def handle_mouse_scroll(self, event):
         max_y = max(self.document.height + 2 * config.VSTEP - self.tab_height, 0)
 
-        self.scroll -= event.delta
+        STEP = 15
+        self.scroll -= event.y * STEP
         if self.scroll < 0:
             self.scroll = 0
         if self.scroll > max_y:
