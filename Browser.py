@@ -80,15 +80,17 @@ class Browser:
             self.raster_tab()
         self.draw()
 
-    def handle_key(self, event):
-        if len(event.char) == 0:
+    def handle_key(self, char):
+        if len(char) == 0:
             return
-        if not (0x20 <= ord(event.char) <= 0x7F):
+        if not (0x20 <= ord(char) <= 0x7F):
             return
-        if self.chrome.keypress(event.char):
+        if self.chrome.keypress(char):
+            self.raster_chrome()
             self.draw()
         elif self.focus == "content":
-            self.active_tab.keypress(event.char)
+            self.active_tab.keypress(char)
+            self.raster_tab()
             self.draw()
 
     def handle_enter(self):
