@@ -71,10 +71,10 @@ class Browser:
         else:
             self.focus = "content"
             self.chrome.blur()
+            url = self.active_tab.url
             tab_y = event.y - self.chrome.bottom
             self.active_tab.handle_click(event.x, tab_y)
 
-            url = self.active_tab.url
             if self.active_tab.url != url:
                 self.raster_chrome()
             self.raster_tab()
