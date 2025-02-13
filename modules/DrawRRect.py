@@ -8,6 +8,6 @@ class DrawRRect:
         self.rrect = skia.RRect.MakeRectXY(rect, radius, radius)
         self.color = color
 
-    def execute(self, scroll, canvas):
+    def execute(self, canvas):
         paint = skia.Paint(Color=utils.parse_color(self.color))
-        canvas.drawRRect(self.rrect.makeOffset(0, -scroll), paint)
+        canvas.drawRRect(self.rrect, paint)

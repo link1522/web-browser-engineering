@@ -182,14 +182,9 @@ class Tab:
         self.display_list = []
         paint_tree(self.document, self.display_list)
 
-    def draw(self, canvas, offset):
+    def raster(self, canvas):
         for cmd in self.display_list:
-            if (
-                cmd.rect.top() > self.scroll + self.tab_height
-                or cmd.rect.bottom() < self.scroll
-            ):
-                continue
-            cmd.execute(self.scroll - offset, canvas)
+            cmd.execute(canvas)
 
     def go_back(self):
         if len(self.history) > 1:
