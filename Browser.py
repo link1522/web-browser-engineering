@@ -95,6 +95,8 @@ class Browser:
 
     def handle_enter(self):
         self.chrome.enter()
+        self.raster_chrome()
+        self.raster_tab()
         self.draw()
 
     def handle_quit(self):
