@@ -98,6 +98,8 @@ class HTMLParser:
         tag = parts[0].casefold()
         attributes = {}
         for attrpair in parts[1:]:
+            if attrpair == "/":
+                continue
             if "=" in attrpair:
                 key, value = attrpair.split("=", 1)
                 if len(value) > 2 and value[0] in ["'", '"']:

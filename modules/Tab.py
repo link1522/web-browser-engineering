@@ -1,8 +1,6 @@
-import skia
 import urllib
 import urllib.parse
 import config
-from .DrawRect import DrawRect
 from .URL import URL
 from .Layouts.DocumentLayout import DocumentLayout
 from .HTMLParser import HTMLParser
