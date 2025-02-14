@@ -194,12 +194,15 @@ class Tab:
 
 def paint_tree(layout_object, display_list):
     if layout_object.should_paint():
-        display_list.extend(layout_object.paint())
-
+        cmds = layout_object.paint()
     for child in layout_object.children:
-        if isinstance(child.node, Element) and child.node.tag == "head":
-            continue
-        paint_tree(child, display_list)
+        paint_tree(child, cmds)
+
+    # If the page fails to render properly, comment out the following lines to disable opacity effects.
+    if layout_object.should_paint():
+        cmds = layout_object.paint_effects(cmds)
+
+    display_list.extend(cmds)
 
 
 def style(node, rules):

@@ -31,5 +31,9 @@ class TextLayout:
         color = self.node.style["color"]
         return [DrawText(self.x, self.y, self.word, self.font, color)]
 
+    def paint_effects(self, cmds):
+        cmds = utils.paint_visual_effects(self.node, cmds)
+        return cmds
+
     def should_paint(self):
         return True

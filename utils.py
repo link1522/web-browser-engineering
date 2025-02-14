@@ -1,4 +1,5 @@
 import skia
+from modules.Opacity import Opacity
 
 FONTS = {}
 
@@ -21,6 +22,11 @@ def get_font(size, weight, style):
         FONTS[key] = font
 
     return skia.Font(FONTS[key], size)
+
+
+def linespace(font):
+    metrics = font.getMetrics()
+    return metrics.fDescent - metrics.fAscent
 
 
 def tree_to_list(tree, list):
@@ -62,6 +68,7 @@ def parse_color(color):
         return skia.ColorBLACK
 
 
-def linespace(font):
-    metrics = font.getMetrics()
-    return metrics.fDescent - metrics.fAscent
+def paint_visual_effects(node, cmds):
+    opacity = float(node.style.get("opacity", "1.0"))
+
+    return [Opacity(opacity, cmds)]

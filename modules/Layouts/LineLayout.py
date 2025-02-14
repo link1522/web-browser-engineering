@@ -1,3 +1,6 @@
+import utils
+
+
 class LineLayout:
     def __init__(self, node, parent, previous):
         self.node = node
@@ -31,5 +34,8 @@ class LineLayout:
     def paint(self):
         return []
 
+    def paint_effects(self, cmds):
+        return cmds
+
     def should_paint(self):
-        return False
+        return True
