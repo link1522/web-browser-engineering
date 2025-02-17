@@ -64,7 +64,7 @@ class InputLayout:
         return cmds
 
     def paint_effects(self, cmds):
-        cmds = utils.paint_visual_effects(self.node, cmds)
+        cmds = utils.paint_visual_effects(self.node, cmds, self.self_rect())
         return cmds
 
     def should_paint(self):
