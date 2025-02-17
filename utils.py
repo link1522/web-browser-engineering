@@ -1,5 +1,6 @@
 import skia
 from modules.Opacity import Opacity
+from modules.Blend import Blend
 
 FONTS = {}
 
@@ -70,5 +71,15 @@ def parse_color(color):
 
 def paint_visual_effects(node, cmds):
     opacity = float(node.style.get("opacity", "1.0"))
+    blend_mode = node.style.get("mix-blend-mode")
 
-    return [Opacity(opacity, cmds)]
+    return [Blend(blend_mode, [Opacity(opacity, cmds)])]
+
+
+def parse_blend_mode(blend_mode_str):
+    if blend_mode_str == "multiply":
+        return skia.BlendMode.kMultiply
+    elif blend_mode_str == "difference":
+        return skia.BlendMode.kDifference
+    else:
+        return skia.BlendMode.kSrcOver
