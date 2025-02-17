@@ -1,5 +1,4 @@
 import skia
-from modules.Opacity import Opacity
 from modules.Blend import Blend
 from modules.DrawRRect import DrawRRect
 
@@ -75,10 +74,14 @@ def paint_visual_effects(node, cmds, rect=None):
     blend_mode = node.style.get("mix-blend-mode")
 
     if node.style.get("overflow", "visible") == "clip":
+        if not blend_mode:
+            blend_mode = "source-over"
         border_radius = float(node.style.get("border-radius", "0px")[:-2])
-        cmds.append(Blend("destination-in", [DrawRRect(rect, border_radius, "white")]))
+        cmds.append(
+            Blend(1.0, "destination-in", [DrawRRect(rect, border_radius, "white")])
+        )
 
-    return [Blend(blend_mode, [Opacity(opacity, cmds)])]
+    return [Blend(opacity, blend_mode, cmds)]
 
 
 def parse_blend_mode(blend_mode_str):
@@ -88,5 +91,7 @@ def parse_blend_mode(blend_mode_str):
         return skia.BlendMode.kDifference
     elif blend_mode_str == "destination-in":
         return skia.BlendMode.kDstIn
+    elif blend_mode_str == "source-over":
+        return skia.BlendMode.kSrcOver
     else:
         return skia.BlendMode.kSrcOver
