@@ -20,3 +20,7 @@ var input = document.querySelectorAll('input');
 for (var i = 0; i < input.length; i++) {
   input[i].addEventListener('keydown', lengthCheck);
 }
+
+setTimeout(function () {
+  console.log('time is up');
+}, 1000);

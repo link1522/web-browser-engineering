@@ -1,7 +1,7 @@
 console = {
   log: function (x) {
     call_python('log', x);
-  }
+  },
 };
 
 document = {
@@ -10,7 +10,7 @@ document = {
     return handles.map(function (h) {
       return new Node(h);
     });
-  }
+  },
 };
 
 function Node(handle) {
@@ -48,7 +48,7 @@ Node.prototype.dispatchEvent = function (evt) {
 Object.defineProperty(Node.prototype, 'innerHTML', {
   set: function (s) {
     call_python('innerHTML_set', this.handle, s.toString());
-  }
+  },
 });
 
 function Event(type) {
@@ -63,11 +63,31 @@ Event.prototype.preventDefault = function () {
 function XMLHttpRequest() {}
 
 XMLHttpRequest.prototype.open = function (method, url, is_async) {
-  if (is_async) { throw Error("Asyncchronous requests is not supported"); }
+  if (is_async) {
+    throw Error('Asyncchronous requests is not supported');
+  }
   this.method = method;
   this.url = url;
-}
+};
 
 XMLHttpRequest.prototype.send = function (body) {
-  this.responseText = call_python("XMLHttpRequest_send", this.method, this.url, body);
+  this.responseText = call_python(
+    'XMLHttpRequest_send',
+    this.method,
+    this.url,
+    body
+  );
+};
+
+SET_TIMEOUT_REQUEST = {};
+
+function __runSetTimeout(handle) {
+  var callback = SET_TIMEOUT_REQUEST[handle];
+  callback();
+}
+
+function setTimeout(callback, time_delta) {
+  var handle = Object.keys(SET_TIMEOUT_REQUEST).length;
+  SET_TIMEOUT_REQUEST[handle] = callback;
+  call_python('setTimeout', handle, time_delta);
 }

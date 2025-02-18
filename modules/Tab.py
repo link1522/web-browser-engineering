@@ -25,6 +25,7 @@ class Tab:
         self.history = []
         self.focus = None
         self.task_runner = TaskRunner(self)
+        self.js = None
 
     def handle_click(self, x, y):
         self.focus = None
@@ -160,6 +161,8 @@ class Tab:
             and node.tag == "script"
             and "src" in node.attributes
         ]
+        if self.js:
+            self.js.discarded = True
         self.js = JSContext(self)
         for script in scripts:
             script_url = url.resolve(script)

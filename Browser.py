@@ -195,6 +195,7 @@ def mainloop(browser):
         browser.active_tab.task_runner.run()
 
 
+
 if __name__ == "__main__":
     sdl2.SDL_Init(sdl2.SDL_INIT_EVENTS)
     browser = Browser()

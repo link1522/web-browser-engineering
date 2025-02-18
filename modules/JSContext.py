@@ -1,9 +1,13 @@
 import dukpy
+import threading
 from .CSSParser import CSSParser
 from .HTMLParser import HTMLParser
+from .Task import Task
 import utils
 
 RUNTIME_JS = open("runtime.js").read()
+EVENT_DISPATCH_JS = "new Node(dukpy.handle).dispatchEvent(new Event(dukpy.type))"
+SETTIMEOUT_JS = "__runSetTimeout(dukpy.handle)"
 
 
 class JSContext:
@@ -11,11 +15,13 @@ class JSContext:
         self.tab = tab
         self.node_to_handle = {}
         self.handle_to_node = {}
+        self.discarded = False
         self.interp = dukpy.JSInterpreter()
         self.interp.export_function("log", print)
         self.interp.export_function("querySelectorAll", self.querySelectorAll)
         self.interp.export_function("getAttribute", self.getAttribute)
         self.interp.export_function("innerHTML_set", self.innerHTML_set)
+        self.interp.export_function("setTimeout", self.setTimeout)
         self.interp.evaljs(RUNTIME_JS)
 
     def run(self, script, code):
@@ -50,9 +56,6 @@ class JSContext:
 
     def dispatch_event(self, type, elt):
         handle = self.node_to_handle.get(elt, -1)
-        EVENT_DISPATCH_JS = (
-            "new Node(dukpy.handle).dispatchEvent(new Event(dukpy.type))"
-        )
         do_default = self.interp.evaljs(EVENT_DISPATCH_JS, type=type, handle=handle)
         return not do_default
 
@@ -74,3 +77,15 @@ class JSContext:
 
         headers, out = full_url.request(self.tab.url, body)
         return out
+
+    def dispatch_settimeout(self, handle):
+        if self.discarded:
+            return
+        self.interp.evaljs(SETTIMEOUT_JS, handle=handle)
+
+    def setTimeout(self, handle, time):
+        def run_callback():
+            task = Task(self.dispatch_settimeout, handle)
+            self.tab.task_runner.schedule_task(task)
+
+        threading.Timer(time / 1000.0, run_callback).start()
