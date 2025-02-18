@@ -1,6 +1,7 @@
 import urllib
 import urllib.parse
 import config
+import utils
 from .URL import URL
 from .Layouts.DocumentLayout import DocumentLayout
 from .HTMLParser import HTMLParser
@@ -8,7 +9,8 @@ from .Element import Element
 from .CSSParser import CSSParser
 from .Text import Text
 from .JSContext import JSContext
-import utils
+from .TaskRunner import TaskRunner
+from .Task import Task
 
 DEFAULT_STYLE_SHEET = CSSParser(open("Browser.css").read()).parse()
 
@@ -22,6 +24,7 @@ class Tab:
         self.tab_height = tab_height
         self.history = []
         self.focus = None
+        self.task_runner = TaskRunner(self)
 
     def handle_click(self, x, y):
         self.focus = None
@@ -167,7 +170,8 @@ class Tab:
                 _, body = script_url.request(url)
             except:
                 continue
-            self.js.run(script, body)
+            task = Task(self.js.run, script_url, body)
+            self.task_runner.schedule_task(task)
 
         self.render()
 
