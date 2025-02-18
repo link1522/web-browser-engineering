@@ -1,7 +1,7 @@
 console = {
   log: function (x) {
     call_python('log', x);
-  },
+  }
 };
 
 document = {
@@ -10,7 +10,7 @@ document = {
     return handles.map(function (h) {
       return new Node(h);
     });
-  },
+  }
 };
 
 function Node(handle) {
@@ -48,7 +48,7 @@ Node.prototype.dispatchEvent = function (evt) {
 Object.defineProperty(Node.prototype, 'innerHTML', {
   set: function (s) {
     call_python('innerHTML_set', this.handle, s.toString());
-  },
+  }
 });
 
 function Event(type) {
@@ -60,12 +60,24 @@ Event.prototype.preventDefault = function () {
   this.do_default = false;
 };
 
-function XMLHttpRequest() {}
+XHR_REQUESTS = {};
+
+function __runXHROnload(body, handle) {
+  var obj = XHR_REQUESTS[handle];
+  var evt = new Event('load');
+  obj.responseText = body;
+  if (obj.onload) {
+    obj.onload(evt);
+  }
+}
+
+function XMLHttpRequest() {
+  this.handle = Object.keys(XHR_REQUESTS).length;
+  XHR_REQUESTS[this.handle] = this;
+}
 
 XMLHttpRequest.prototype.open = function (method, url, is_async) {
-  if (is_async) {
-    throw Error('Asyncchronous requests is not supported');
-  }
+  this.is_async = is_async;
   this.method = method;
   this.url = url;
 };
@@ -75,7 +87,9 @@ XMLHttpRequest.prototype.send = function (body) {
     'XMLHttpRequest_send',
     this.method,
     this.url,
-    body
+    body,
+    this.is_async,
+    this.handle
   );
 };
 
