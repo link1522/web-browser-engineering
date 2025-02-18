@@ -1,3 +1,4 @@
+import threading
 import sdl2
 import ctypes
 import skia
@@ -7,6 +8,7 @@ import config
 from modules.Tab import Tab
 from modules.URL import URL
 from modules.Chrome import Chrome
+from modules.Task import Task
 
 
 class Browser:
@@ -45,6 +47,7 @@ class Browser:
 
         self.chrome_surface = skia.Surface(config.WIDTH, math.ceil(self.chrome.bottom))
         self.tab_surface = None
+        self.animation_timer = None
 
     def handle_down(self):
         self.active_tab.handle_down()
@@ -160,6 +163,11 @@ class Browser:
         for cmd in self.chrome.paint():
             cmd.execute(canvas)
 
+    def raster_and_draw(self):
+        self.raster_chrome()
+        self.raster_tab()
+        self.draw()
+
     def new_tab(self, url):
         new_tab = Tab(config.HEIGHT - self.chrome.bottom)
         new_tab.load(url)
@@ -168,6 +176,17 @@ class Browser:
         self.raster_tab()
         self.raster_chrome()
         self.draw()
+
+    def schedule_animation_frame(self):
+        def callback():
+            active_tab = self.active_tab
+            task = Task(active_tab.render)
+            active_tab.task_runner.schedule_task(task)
+            self.animation_timer = None
+
+        if not self.animation_timer:
+            self.animation_timer = threading.Timer(config.REFRESH_RATE_SEC, callback)
+            self.animation_timer.start()
 
 
 def mainloop(browser):
@@ -193,7 +212,8 @@ def mainloop(browser):
                 browser.handle_key(event.text.text.decode("utf8"))
 
         browser.active_tab.task_runner.run()
-
+        browser.raster_and_draw()
+        browser.schedule_animation_frame()
 
 
 if __name__ == "__main__":
